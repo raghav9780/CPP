@@ -23,6 +23,7 @@ Do tarah ke problems yahan cover hue hain:
 | 153 | [Find Minimum in Rotated Sorted Array](<BinarySearch/03_153FindMinimuminRotatedSortedArray.cpp>) | `O(log n)` | `O(1)` | Min wahan hai jahan rotation toota. `nums[m] > nums[j]` → min right mein (`i=m+1`), warna `m` khud candidate (`j=m`). |
 | 162 | [Find Peak Element](<BinarySearch/05_162FindPeakElement.cpp>) | `O(log n)` | `O(1)` | Uphill direction pakdo: `nums[m] < nums[m+1]` to peak right mein hai (`i=m+1`), warna left (`j=m`). Convergence pe peak. |
 | 540 | [Single Element in a Sorted Array](<BinarySearch/04_540SingleElementinaSortedArray.cpp>) | `O(log n)` | `O(1)` | Pairs ki parity use karo. `m` ko even rakho: agar `nums[m]==nums[m+1]` to single right mein (`i=m+2`), warna left (`j=m`). |
+| 1539 | [Kth Missing Positive Number](<BinarySearch/12_1539KthMissingPositiveNumber.cpp>) | `O(log n)` | `O(1)` | Index `i` tak missing count = `arr[i]-(i+1)`, jo monotonic hai. Pehla index dhoondo jahan missing `>= k`; answer = `i + k`. |
 
 ---
 
