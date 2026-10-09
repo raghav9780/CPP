@@ -18,7 +18,7 @@ int solve(vector<int>& v, int k){
 }
 
 int main(){
-    vector<int> v={1,-1,1,-1};
-    int k =0;
+    vector<int> v={2,-1,3,5,-2};
+    int k =7;
     cout<<solve(v,k);
 }
