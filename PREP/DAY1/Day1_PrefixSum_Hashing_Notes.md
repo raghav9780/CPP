@@ -5,13 +5,14 @@
 
 | # | Problem | Core trick | Time | Extra space |
 |---|---|---|---|---|
-| 1 | [LC 560 Subarray Sum Equals K](#1-lc-560--subarray-sum-equals-k) | map: prefix sum → **count** | O(n) | O(n) |
-| 2 | [LC 525 Contiguous Array](#2-lc-525--contiguous-array) | 0 → -1, map: prefix sum → **first index** | O(n) | O(n) |
-| 3 | [LC 974 Subarray Sums Divisible by K](#3-lc-974--subarray-sums-divisible-by-k) | map: **remainder** → count | O(n) | O(k) |
-| 4 | [LC 128 Longest Consecutive Sequence](#4-lc-128--longest-consecutive-sequence) | hash set + **engine check** | O(n) | O(n) |
-| 5 | [LC 238 Product of Array Except Self](#5-lc-238--product-of-array-except-self) | prefix pass + **suffix variable** | O(n) | O(1) |
-| 6 | [CSES 1643 Maximum Subarray Sum](#6-cses-1643--maximum-subarray-sum) | **min prefix so far** / Kadane | O(n) | O(1) |
-| 7 | [CSES 1661 Subarray Sums II](#7-cses-1661--subarray-sums-ii) | 560 + `long long` + anti-hash care | O(n) | O(n) |
+| 1 | [LC 560 Subarray Sum Equals K](#1-lc-560-subarray-sum-equals-k) | map: prefix sum → **count** | O(n) | O(n) |
+| 2 | [LC 525 Contiguous Array](#2-lc-525-contiguous-array) | 0 → -1, map: prefix sum → **first index** | O(n) | O(n) |
+| 3 | [LC 974 Subarray Sums Divisible by K](#3-lc-974-subarray-sums-divisible-by-k) | map: **remainder** → count | O(n) | O(k) |
+| 4 | [LC 128 Longest Consecutive Sequence](#4-lc-128-longest-consecutive-sequence) | hash set + **engine check** | O(n) | O(n) |
+| 5 | [LC 238 Product of Array Except Self](#5-lc-238-product-of-array-except-self) | prefix pass + **suffix variable** | O(n) | O(1) |
+| 6 | [CSES 1643 Maximum Subarray Sum](#6-cses-1643-maximum-subarray-sum) | **min prefix so far** / Kadane | O(n) | O(1) |
+| 7 | [CSES 1661 Subarray Sums II](#7-cses-1661-subarray-sums-ii) | 560 + `long long` + anti-hash care | O(n) | O(n) |
+| 8 | [CSES 1662 Subarray Divisibility](#8-cses-1662-subarray-divisibility) | 974 with `k = n`, vector of remainders | O(n) | O(n) |
 
 ---
 
@@ -37,7 +38,7 @@ e.g. sum(1…2) = 2 + 3 = 5 = ps[2] - ps[0] = 6 - 1 ✓
 
 So a question about a **subarray** becomes a question about a **pair of prefix sums**. And for "find a matching earlier prefix" questions, a hashmap gives O(1) lookups.
 
-### The golden loop (used in 560, 525, 974, 1643)
+### The golden loop (used in 560, 525, 974, 1643, 1661, 1662)
 
 ```mermaid
 flowchart LR
@@ -695,7 +696,7 @@ It's **exactly LC 560**, with CSES-sized numbers. Same golden loop: seed `m[0]=1
 ps[j] - ps[i] = x   ⇔   look for (ps - x) among earlier prefix sums
 ```
 
-The CSES sample `5 7 / 2 -1 3 5 -2` is the **same test case as my 560 file**, so the full dry run and graph are in [section 1](#dry-run-test-case-in-my-file-v--2-13-5-2-k--7). Output: **2** (`[-1,3,5]` and the whole array).
+The CSES sample `5 7 / 2 -1 3 5 -2` is the **same test case as my 560 file**, so the full dry run and graph are in [section 1](#dry-run-test-case-in-my-file-v--2-135-2-k--7). Output: **2** (`[-1,3,5]` and the whole array).
 
 ### Why `long long` everywhere
 
@@ -821,6 +822,121 @@ int main(){
 
 ---
 
+## 8. CSES 1662: Subarray Divisibility
+
+**Count** the subarrays whose sum is divisible by **`n`** (the array's own length). n ≤ 2·10⁵, |aᵢ| ≤ 10⁹, and values can be negative.
+
+### Intuition
+
+It's **exactly [LC 974](#3-lc-974-subarray-sums-divisible-by-k)** with `k = n`: the same clock, now with `n` hours.
+
+```
+sum(i+1…j) divisible by n   ⇔   ps[i] % n == ps[j] % n   ⇔   same clock position
+```
+
+The one new twist is that **`n` has two jobs**: it's the array size **and** the divisor. So `n` must still hold its original value when `solve()` runs (see the bug below).
+
+### Graph: CSES sample `5` / `3 1 2 7 4`, clock with 5 hours
+
+```
+ rem
+  4 |          ●
+  3 |      ◆           ◆      ← position 3 visited twice → 1 subarray
+  2 |                      ●
+  1 |              ●
+  0 |  ●   (seed)
+    +------------------------
+      st  0   1   2   3   4   index
+
+rem 3 : {idx 0, idx 3}  → C(2,2) = 1  → subarray idx 1…3 = [1, 2, 7], sum 10 ✓
+every other remainder appears once → 0
+```
+
+### Dry run
+
+| x | ps | rem = ps % 5 | seen before | c | m after insert (rem 0…4) |
+|---|---|---|---|---|---|
+| start | 0 | 0 | | 0 | `[1,0,0,0,0]` |
+| 3 | 3 | 3 | 0 | 0 | `[1,0,0,1,0]` |
+| 1 | 4 | 4 | 0 | 0 | `[1,0,0,1,1]` |
+| 2 | 6 | 1 | 0 | 0 | `[1,1,0,1,1]` |
+| 7 | 13 | **3** | 1 | **1** | `[1,1,0,2,1]` |
+| 4 | 17 | 2 | 0 | 1 | `[1,1,1,2,1]` |
+
+Output: **1**
+
+### Why a `vector`, not a map
+
+- Remainders are always in `0 … n-1`, so `vector<ll> m(n)` is a perfect bucket array.
+- No hashing means **no anti-hash TLE risk** (see [section 7](#-cses-trap-anti-hash-tests-tle)). It's also faster than `map`.
+
+### 🐞 Bug I made: the loop ate `n`
+
+```cpp
+while(n>0){ cin>>x; v.push_back(x); n--; }   // ❌ n becomes 0
+cout<<solve(v,n);                            //    solve(v, 0)
+```
+
+Inside `solve` with `n = 0`:
+
+| line | what happens |
+|---|---|
+| `vector<ll> m(n,0);` | vector of size **0** |
+| `m[0]=1;` | writes to an index that doesn't exist → **out of bounds** |
+| `ps % n` | **modulo by zero** |
+
+Result: **Segmentation fault** on the sample, with nothing printed.
+
+```cpp
+for(int i=0;i<n;i++){ cin>>x; v.push_back(x); }   // ✅ n untouched
+```
+
+> Lesson: if a variable is needed **after** the input loop, never use it as the loop counter.
+
+### Code
+
+```cpp
+#define ll long long
+ll solve(vector<ll>& v, ll n){
+    ll ps = 0, rem = 0, c = 0;
+    vector<ll> m(n, 0);
+    m[0] = 1;                        // empty prefix
+    for(auto it : v){
+        ps += it;
+        rem = ((ps % n) + n) % n;    // fix negative remainder
+        c += m[rem];                 // query first
+        m[rem]++;                    // then insert
+    }
+    return c;
+}
+
+int main(){
+    ios::sync_with_stdio(false); cin.tie(nullptr);
+    ll n;
+    cin >> n;
+    vector<ll> v;
+    for(int i = 0; i < n; i++){
+        ll x;
+        cin >> x;
+        v.push_back(x);
+    }
+    cout << solve(v, n);
+}
+```
+
+### Tests I ran
+
+| test | expected | output |
+|---|---|---|
+| `5` / `3 1 2 7 4` (CSES sample) | 1 | 1 ✅ |
+| `3` / `-1 -2 -3` | 3 (`[-1,-2]`, `[-3]`, whole array) | 3 ✅ (negative remainder fix) |
+| `1` / `5` | 1 (everything is divisible by 1) | 1 ✅ |
+| `4` / `0 0 0 0` | 10 (every subarray) | 10 ✅ |
+| 200000 zeros | 20000100000 | 20000100000 ✅ (`long long` count) |
+| 200000 × -10⁹ | 20000100000 | 20000100000 ✅ (`long long` ps, negatives) |
+
+---
+
 ## 🧠 Pattern summary
 
 ### Which tool when?
@@ -830,7 +946,7 @@ flowchart TD
     A["Problem"] --> B{"Is it about a<br/>contiguous subarray?"}
     B -->|yes| C{"What is asked?"}
     C -->|"COUNT with sum = k"| P560["560<br/>map: ps → count<br/>look up ps - k"]
-    C -->|"COUNT with sum % k = 0"| P974["974<br/>map: ps % k → count"]
+    C -->|"COUNT with sum % k = 0"| P974["974 / CSES 1662<br/>map: ps % k → count"]
     C -->|"LONGEST with sum = 0<br/>(balanced 0/1)"| P525["525<br/>map: ps → first index"]
     C -->|"MAX sum"| P1643["1643<br/>min prefix so far / Kadane"]
     B -->|"no: product of the others"| P238["238<br/>prefix pass + suffix variable"]
@@ -842,7 +958,7 @@ flowchart TD
 | Problem | What I remember from the past | Seed | Answer at each step |
 |---|---|---|---|
 | 560 / CSES 1661 | count of each `ps` | `m[0]=1` | `c += m[ps-k]` |
-| 974 | count of each `ps % k` | `m[0]=1` | `c += m[rem]` |
+| 974 / CSES 1662 | count of each `ps % k` (`k = n` in 1662) | `m[0]=1` | `c += m[rem]` |
 | 525 | first index of each `ps` | `m[0]=-1` | `max(i - m[ps])` |
 | 1643 | smallest `ps` so far | `mi=0` | `max(ps - mi)` |
 | 238 | running product from the left / right | `pre=1`, `suf=1` | `ans[i] = pre × suf` |
@@ -861,6 +977,7 @@ flowchart TD
 - [ ] Negative `%` fixed with `((x%k)+k)%k`?
 - [ ] **`long long`** when sums can overflow?
 - [ ] Input loop runs **exactly n** times? Returning the real answer, not 0?
+- [ ] Is `n` needed **after** the input loop? Then don't decrement it (use `for(int i=0;i<n;i++)`)
 - [ ] `unordered_set` / `unordered_map` when O(n) is required?
 - [ ] On **CSES / Codeforces**: is `unordered_map` at risk of anti-hash TLE? (use `map` or a custom hash)
 - [ ] `ios::sync_with_stdio(false); cin.tie(nullptr);` as the first line of `main()`?
